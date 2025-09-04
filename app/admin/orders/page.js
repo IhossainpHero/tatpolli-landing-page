@@ -91,7 +91,7 @@ export default function OrdersPage() {
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative">
               <a
-                href="/admin/dashboard"
+                href="/admin/admin/dashboard"
                 className="text-sm text-blue-600 hover:underline mt-4 inline-block"
               >
                 &larr; ড্যাশবোর্ডে ফিরে যান

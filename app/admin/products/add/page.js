@@ -6,25 +6,20 @@ export default function AdminProductPanel() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [loadingAdd, setLoadingAdd] = useState(false);
 
   const [newProduct, setNewProduct] = useState({
     name: "",
-    offerPrice: "",
-    imageFile: null, // Change to store the file object
-    imageURL: "",
     regularPrice: "",
+    offerPrice: "",
     details: "",
-    imageID: "",
+    image: null,
   });
-  const [addingProduct, setAddingProduct] = useState(false);
-  const [addError, setAddError] = useState(null);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch(
-        `${window.location.origin}/api/admin/add-product`
-      );
+      const res = await fetch("/api/admin/add-product");
       if (!res.ok) throw new Error("পণ্য লোড করতে সমস্যা হয়েছে।");
       const data = await res.json();
       setProducts(data);
@@ -42,79 +37,78 @@ export default function AdminProductPanel() {
   }, []);
 
   const handleDelete = async (id) => {
-    if (!id) {
-      setError("পণ্য আইডি অবৈধ।");
-      return;
-    }
-
     try {
-      const res = await fetch(
-        `${window.location.origin}/api/admin/add-product?id=${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const res = await fetch(`/api/admin/add-product?id=${id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("পণ্য মুছে ফেলতে ব্যর্থ হয়েছে।");
-      await fetchProducts(); // Refresh the list
+      await fetchProducts();
     } catch (err) {
       console.error("Error deleting product: ", err);
       setError("পণ্য মুছে ফেলতে ব্যর্থ হয়েছে।");
     }
   };
 
-  // The main function to handle both form submission and image upload
   const handleAddProduct = async (e) => {
     e.preventDefault();
-    setAddingProduct(true);
-    setAddError(null);
+    setLoadingAdd(true);
+    setError(null);
 
-    const { name, offerPrice, imageFile, regularPrice, details } = newProduct;
+    const formData = new FormData();
+    formData.append("name", newProduct.name);
+    formData.append("regularPrice", newProduct.regularPrice);
+    formData.append("offerPrice", newProduct.offerPrice);
+    formData.append("details", newProduct.details);
 
-    if (!name || !offerPrice || !imageFile || !regularPrice || !details) {
-      setAddError("দয়া করে সকল তথ্য পূরণ করুন।");
-      setAddingProduct(false);
+    if (newProduct.image) {
+      formData.append("image", newProduct.image);
+    } else {
+      setError("ছবি নির্বাচন করতে ব্যর্থ হয়েছে।");
+      setLoadingAdd(false);
       return;
     }
 
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("offerPrice", offerPrice);
-    formData.append("regularPrice", regularPrice);
-    formData.append("details", details);
-    formData.append("image", imageFile); // Append the image file directly
-
     try {
-      const res = await fetch(
-        `${window.location.origin}/api/admin/add-product`,
-        {
-          method: "POST",
-          body: formData, // No Content-Type header needed for FormData
-        }
-      );
+      const res = await fetch("/api/admin/add-product", {
+        method: "POST",
+        body: formData,
+      });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "পণ্য যোগ করতে ব্যর্থ হয়েছে।");
+        throw new Error("পণ্য যোগ করতে ব্যর্থ হয়েছে।");
       }
 
-      setNewProduct({
-        name: "",
-        offerPrice: "",
-        imageFile: null,
-        regularPrice: "",
-        details: "",
-        imageID: "",
-        imageURL: "",
-      });
-      setAddError(null);
-      await fetchProducts(); // Refresh the list
+      const data = await res.json();
+      if (data.success) {
+        setNewProduct({
+          name: "",
+          regularPrice: "",
+          offerPrice: "",
+          details: "",
+          image: null,
+        });
+        setError(null);
+        await fetchProducts(); // Refresh the list
+      } else {
+        setError(data.message || "পণ্য যোগ করতে ব্যর্থ হয়েছে।");
+      }
     } catch (err) {
-      console.error("Error adding product: ", err);
-      setAddError(err.message);
+      console.error("Error adding product:", err);
+      setError("পণ্য যোগ করতে ব্যর্থ হয়েছে।");
     } finally {
-      setAddingProduct(false);
+      setLoadingAdd(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="p-8 rounded-lg shadow-xl bg-white text-center">
+          <p className="text-gray-700">পণ্য লোড হচ্ছে...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-100 min-h-screen p-8 font-sans">
@@ -124,6 +118,12 @@ export default function AdminProductPanel() {
           <p className="text-gray-500 mt-2">
             নতুন পণ্য যোগ করুন এবং বিদ্যমান পণ্য পরিচালনা করুন।
           </p>
+          <a
+            href="/admin/dashboard"
+            className="text-sm text-blue-600 hover:underline mt-4 inline-block"
+          >
+            &larr; ড্যাশবোর্ডে ফিরে যান
+          </a>
         </div>
 
         {error && (
@@ -147,11 +147,6 @@ export default function AdminProductPanel() {
             </svg>{" "}
             নতুন পণ্য যোগ করুন
           </h2>
-          {addError && (
-            <div className="bg-red-100 text-red-700 p-4 rounded-xl mb-4 text-center font-medium">
-              {addError}
-            </div>
-          )}
           <form
             onSubmit={handleAddProduct}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -163,41 +158,41 @@ export default function AdminProductPanel() {
               onChange={(e) =>
                 setNewProduct({ ...newProduct, name: e.target.value })
               }
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-700 bg-gray-800 text-white p-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
             <input
-              type="text"
+              type="number"
+              placeholder="রেগুলার মূল্য (৳)"
+              value={newProduct.regularPrice}
+              onChange={(e) =>
+                setNewProduct({ ...newProduct, regularPrice: e.target.value })
+              }
+              className="w-full border border-gray-700 bg-gray-800 text-white p-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            />
+            <input
+              type="number"
+              placeholder="অফার মূল্য (৳)"
+              value={newProduct.offerPrice}
+              onChange={(e) =>
+                setNewProduct({ ...newProduct, offerPrice: e.target.value })
+              }
+              className="w-full border border-gray-700 bg-gray-800 text-white p-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            />
+            <textarea
               placeholder="পণ্যের বিস্তারিত"
               value={newProduct.details}
               onChange={(e) =>
                 setNewProduct({ ...newProduct, details: e.target.value })
               }
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <input
-              type="number"
-              placeholder="মূল্য (৳)"
-              value={newProduct.offerPrice}
-              onChange={(e) =>
-                setNewProduct({ ...newProduct, offerPrice: e.target.value })
-              }
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <input
-              type="number"
-              placeholder="সাধারণ মূল্য (৳)"
-              value={newProduct.regularPrice}
-              onChange={(e) =>
-                setNewProduct({ ...newProduct, regularPrice: e.target.value })
-              }
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-700 bg-gray-800 text-white  rounded-lg focus:ring-2 focus:ring-blue-500 col-span-1 md:col-span-2 lg:col-span-3"
+              rows="4"
               required
             />
 
-            {/* Image Upload Input */}
+            {/* Image Upload Section */}
             <div className="col-span-1 md:col-span-2 lg:col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 পণ্য ছবি আপলোড করুন
@@ -205,7 +200,7 @@ export default function AdminProductPanel() {
               <input
                 type="file"
                 onChange={(e) =>
-                  setNewProduct({ ...newProduct, imageFile: e.target.files[0] })
+                  setNewProduct({ ...newProduct, image: e.target.files[0] })
                 }
                 className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
@@ -215,26 +210,31 @@ export default function AdminProductPanel() {
                 hover:file:bg-blue-100"
                 required
               />
-              {newProduct.imageFile && (
+              {newProduct.image && (
                 <div className="mt-4 flex items-center space-x-4">
                   <img
-                    src={URL.createObjectURL(newProduct.imageFile)}
+                    src={URL.createObjectURL(newProduct.image)}
                     alt="Uploaded product preview"
                     className="w-24 h-24 object-cover rounded-lg"
                   />
-                  <p className="text-sm text-gray-500">
-                    ছবি নির্বাচন করা হয়েছে!
-                  </p>
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      ছবি নির্বাচন করা হয়েছে!
+                    </p>
+                    <p className="text-xs text-gray-400 break-all">
+                      {newProduct.image.name}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
 
             <button
               type="submit"
-              disabled={addingProduct}
+              disabled={loadingAdd}
               className="md:col-span-3 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {addingProduct ? "যোগ করা হচ্ছে..." : "পণ্য যোগ করুন"}
+              {loadingAdd ? "যোগ করা হচ্ছে..." : "প্রোডাক্ট যোগ করুন"}
             </button>
           </form>
         </div>
@@ -244,7 +244,6 @@ export default function AdminProductPanel() {
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             সকল পণ্য ({products.length})
           </h2>
-          {/* Modified grid layout for all devices */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
               <div

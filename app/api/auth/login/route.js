@@ -13,17 +13,20 @@ export async function POST(req) {
       const token = jwt.sign({ isAdmin: true }, JWT_SECRET, {
         expiresIn: "1h",
       });
-      return NextResponse.json({ success: true, token });
-    } else {
-      return NextResponse.json(
-        { success: false, message: "ভুল ইমেল বা পাসওয়ার্ড।" },
-        { status: 401 }
-      );
+
+      const res = NextResponse.json({ success: true });
+      res.cookies.set("token", token, { httpOnly: true, path: "/" });
+      return res;
     }
-  } catch (error) {
-    console.error("Login error:", error);
+
     return NextResponse.json(
-      { success: false, message: "লগইন করতে ব্যর্থ হয়েছে।" },
+      { success: false, message: "ভুল ইমেল বা পাসওয়ার্ড।" },
+      { status: 401 }
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { success: false, message: "লগইন ব্যর্থ হয়েছে।" },
       { status: 500 }
     );
   }

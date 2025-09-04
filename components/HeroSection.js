@@ -1,11 +1,11 @@
 "use client";
 
-import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
-import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const HeroSection = () => {
+  const router = useRouter();
+
   return (
     <section className="relative h-[40vh] flex flex-col justify-start items-center text-center text-white p-4">
       {/* ব্যানার ইমেজ */}
@@ -14,6 +14,16 @@ const HeroSection = () => {
         style={{ backgroundImage: "url('/images/banner.png')" }}
       >
         <div className="absolute inset-0 bg-black opacity-50"></div>
+      </div>
+
+      {/* Seller Dashboard Button */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={() => router.push("/admin/login")}
+          className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-1 px-3 rounded-full shadow-lg text-sm transition-transform transform hover:scale-105"
+        >
+          Seller Dashboard
+        </button>
       </div>
 
       {/* কন্টেন্ট */}
@@ -35,16 +45,20 @@ const HeroSection = () => {
           আরো স্মার্ট করে তুলবে সবার কাছে।
         </h1>
 
-        {/* বাটন */}
-        <div className="flex space-x-2 mt-2">
-          <button className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-full flex items-center shadow-md transition-transform transform hover:scale-105 text-sm">
-            <FontAwesomeIcon icon={faShoppingCart} className="mr-2" /> অর্ডার
-            নাও
-          </button>
-          <button className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-full flex items-center shadow-md transition-transform transform hover:scale-105 text-sm">
-            <FontAwesomeIcon icon={faWhatsapp} className="mr-2" /> হোয়াটসঅ্যাপ
-            অর্ডার
-          </button>
+        {/* Action Buttons */}
+        <div className="flex space-x-3 mt-3">
+          {/* <button className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-transform transform hover:scale-105 text-sm">
+            অর্ডার নাও
+          </button> */}
+          <a
+            href="https://wa.me/8801620679332"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <button className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-transform transform hover:scale-105 text-sm">
+              হোয়াটসঅ্যাপ অর্ডার
+            </button>
+          </a>
         </div>
       </div>
     </section>

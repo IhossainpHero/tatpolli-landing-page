@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 export default function AdminDashboard() {
@@ -14,7 +16,7 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Link
-            href="/admin/admin/add-product/" // Updated link
+            href="/admin/products/add"
             className="block p-6 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-colors duration-200"
           >
             <h2 className="text-xl font-semibold mb-2">নতুন পণ্য যোগ করুন</h2>
@@ -24,7 +26,7 @@ export default function AdminDashboard() {
           </Link>
 
           <Link
-            href="/admin/admin/products/orders"
+            href="/admin/products/orders"
             className="block p-6 bg-green-500 text-white rounded-lg shadow-lg hover:bg-green-600 transition-colors duration-200"
           >
             <h2 className="text-xl font-semibold mb-2">অর্ডার দেখুন</h2>
@@ -39,6 +41,10 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+      {/* Credit Section */}
+      <footer className="text-center mt-6 text-sm text-gray-500">
+        Developed by <span className="font-semibold">Imran</span>
+      </footer>
     </div>
   );
 }

@@ -139,6 +139,7 @@ export default function OrdersPage() {
                   <th className="p-4 text-sm font-semibold">Status</th>
                   <th className="p-4 text-sm font-semibold">Total</th>
                   <th className="p-4 text-sm font-semibold">Date</th>
+                  <th className="p-4 text-sm font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -151,7 +152,6 @@ export default function OrdersPage() {
                         : "bg-gray-50 hover:bg-gray-100"
                     }
                   >
-                    {/* Customer */}
                     <td className="p-4 align-top">
                       <div className="font-semibold">{order.customerName}</div>
                       <div className="text-xs text-gray-500">
@@ -159,7 +159,6 @@ export default function OrdersPage() {
                       </div>
                     </td>
 
-                    {/* Phone */}
                     <td className="p-4 align-top">
                       <div className="flex items-center gap-2">
                         <span className="text-gray-800">{order.phone}</span>
@@ -176,14 +175,12 @@ export default function OrdersPage() {
                       </div>
                     </td>
 
-                    {/* Address */}
                     <td className="p-4 align-top">
                       <div className="max-w-xs truncate text-gray-700">
                         {order.address}
                       </div>
                     </td>
 
-                    {/* Products */}
                     <td className="p-4 align-top">
                       <ul className="space-y-3">
                         {order.products?.map((p, i) => (
@@ -208,7 +205,6 @@ export default function OrdersPage() {
                       </ul>
                     </td>
 
-                    {/* Shipping */}
                     <td className="p-4 align-top">
                       <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium text-gray-700 border-gray-300 bg-gray-100">
                         {order.shipping === "insideDhaka"
@@ -217,7 +213,6 @@ export default function OrdersPage() {
                       </span>
                     </td>
 
-                    {/* Status (select) */}
                     <td className="p-4 align-top">
                       <select
                         value={order.status || "pending"}
@@ -261,16 +256,50 @@ export default function OrdersPage() {
                       </select>
                     </td>
 
-                    {/* Total */}
                     <td className="p-4 align-top">
                       <div className="font-bold text-green-700">
                         ৳{order.totalPrice}
                       </div>
                     </td>
 
-                    {/* Date */}
                     <td className="p-4 align-top text-gray-700">
                       {new Date(order.createdAt).toLocaleString("bn-BD")}
+                    </td>
+
+                    {/* Delete Button */}
+                    <td className="p-4 align-top">
+                      <button
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs"
+                        onClick={async () => {
+                          if (
+                            !confirm(
+                              "আপনি কি সত্যিই এই অর্ডারটি ডিলিট করতে চান?"
+                            )
+                          )
+                            return;
+
+                          try {
+                            const res = await fetch(
+                              `/api/orders/${order._id}`,
+                              { method: "DELETE" }
+                            );
+                            const data = await res.json();
+                            if (data.success) {
+                              setOrders((prev) =>
+                                prev.filter((o) => o._id !== order._id)
+                              );
+                              alert("Order deleted successfully");
+                            } else {
+                              alert(data.message || "Failed to delete order");
+                            }
+                          } catch (err) {
+                            console.error(err);
+                            alert("Error deleting order");
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
