@@ -382,6 +382,26 @@ export default function ProductOrderForm({ products: initialProducts }) {
           </div>
         </form>
       </div>
+      {/* Credit Section */}
+      <footer className="mt-10 bg-black text-white py-6 shadow-inner">
+        <div className="text-center text-sm">
+          <p className="text-gray-400">
+            Copyright © 2025{" "}
+            <span className="font-semibold tracking-wide text-white">
+              Tatpolli
+            </span>{" "}
+            - Developed by{" "}
+            <a
+              href="https://imran-hossain-portfolio.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 hover:from-pink-400 hover:via-yellow-300 hover:to-blue-400 transition-colors duration-500"
+            >
+              Imran
+            </a>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
