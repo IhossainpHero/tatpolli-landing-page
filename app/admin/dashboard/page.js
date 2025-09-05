@@ -43,7 +43,15 @@ export default function AdminDashboard() {
       </div>
       {/* Credit Section */}
       <footer className="text-center mt-6 text-sm text-gray-500">
-        Developed by <span className="font-semibold">Imran</span>
+        Copyright © 2025 Tatpolli - Developed by{" "}
+        <a
+          href="https://imran-hossain-portfolio.netlify.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-blue-600 hover:underline"
+        >
+          Imran
+        </a>
       </footer>
     </div>
   );

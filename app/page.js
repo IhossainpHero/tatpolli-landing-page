@@ -3,6 +3,7 @@ import ProductGrid from "@/components/ProductGrid";
 import Order from "./models/Order";
 
 import ProductOrderForm from "@/components/ProductOrderForm";
+import YouTubePlayer from "@/components/YouTubePlayer";
 import connectDB from "../app/lib/dbConnect";
 import Product from "./models/Product";
 
@@ -37,6 +38,7 @@ export default async function Home() {
   return (
     <main>
       <HeroSection />
+      <YouTubePlayer />
       <ProductGrid products={products} />
       <ProductOrderForm products={products} />
       {/* <OrdersSection orders={orders} /> */}
