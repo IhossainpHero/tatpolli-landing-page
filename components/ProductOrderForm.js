@@ -19,14 +19,14 @@ export default function ProductOrderForm({ products: initialProducts }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Use useEffect to handle initial products data, ensuring the component is fully hydrated with data.
+  // Initialize products
   useEffect(() => {
     if (initialProducts) {
       setProducts(initialProducts);
     }
   }, [initialProducts]);
 
-  // Handles adding or removing a product from the selection list.
+  // Handle product selection
   const handleProductSelection = (product) => {
     const isSelected = selectedProducts.some((p) => p._id === product._id);
     if (isSelected) {
@@ -38,7 +38,7 @@ export default function ProductOrderForm({ products: initialProducts }) {
     }
   };
 
-  // Updates the quantity of a selected product.
+  // Handle quantity change
   const handleQuantityChange = (productId, newQuantity) => {
     setSelectedProducts(
       selectedProducts.map((p) =>
@@ -47,7 +47,7 @@ export default function ProductOrderForm({ products: initialProducts }) {
     );
   };
 
-  // Calculates subtotal, shipping, and total cost using useMemo for performance optimization.
+  // Calculate totals
   const { subtotal, total, finalShippingCost } = useMemo(() => {
     const calculatedSubtotal = selectedProducts.reduce(
       (acc, p) => acc + p.offerPrice * p.quantity,
@@ -64,27 +64,24 @@ export default function ProductOrderForm({ products: initialProducts }) {
     };
   }, [selectedProducts, shipping]);
 
-  // Handles the form submission logic.
+  // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
-    // 🔹 এখানে debug করার জন্য console.log
-    console.log("Selected Products before submit:", selectedProducts);
+    if (selectedProducts.length === 0) {
+      setMessage("অনুগ্রহ করে অন্তত একটি পণ্য নির্বাচন করুন।");
+      setLoading(false);
+      return;
+    }
+    if (!customerName || !phone || !address) {
+      setMessage("⚠️ অনুগ্রহ করে সকল প্রয়োজনীয় তথ্য পূরণ করুন।");
+      setLoading(false);
+      return;
+    }
 
     try {
-      if (selectedProducts.length === 0) {
-        setMessage("অনুগ্রহ করে অন্তত একটি পণ্য নির্বাচন করুন।");
-        setLoading(false);
-        return;
-      }
-      if (!customerName || !phone || !address) {
-        setMessage("⚠️ অনুগ্রহ করে সকল প্রয়োজনীয় তথ্য পূরণ করুন।");
-        setLoading(false);
-        return;
-      }
-
       const orderData = {
         customerName,
         phone,
@@ -94,7 +91,7 @@ export default function ProductOrderForm({ products: initialProducts }) {
           name: p.name,
           price: p.offerPrice,
           imageURL: p.imageURL,
-          quantity: p.quantity || 1, // ⚡ অবশ্যই রাখুন
+          quantity: p.quantity || 1,
         })),
         shipping,
         totalPrice: total,
@@ -132,25 +129,25 @@ export default function ProductOrderForm({ products: initialProducts }) {
           </p>
         </div>
 
-        {/* Message Display */}
+        {/* Message */}
         {message && (
           <div
-            className={`p-5 rounded-2xl mb-8 text-center font-medium transition-all duration-300 transform ${
+            className={`p-5 rounded-2xl mb-8 text-center font-medium transition-all duration-300 ${
               message.includes("✅")
-                ? "bg-green-100 text-green-800 scale-100 opacity-100"
-                : "bg-red-100 text-red-800 scale-100 opacity-100"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
             }`}
           >
             {message}
           </div>
         )}
 
-        {/* Main Form Layout */}
+        {/* Main Form */}
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 lg:grid-cols-3 gap-10"
         >
-          {/* Left Section (2 cols for products and user info) */}
+          {/* Left Section */}
           <div className="lg:col-span-2 space-y-10">
             {/* Product Selection */}
             <div className="bg-white p-8 rounded-3xl shadow-xl">
@@ -194,19 +191,59 @@ export default function ProductOrderForm({ products: initialProducts }) {
                           </p>
                         </div>
                       </div>
+
+                      {/* Quantity Section */}
                       {isSelected && (
                         <div className="mt-6 flex items-center justify-between">
                           <p className="text-gray-700 font-medium">সংখ্যা:</p>
-                          <input
-                            type="number"
-                            min="1"
-                            value={currentQuantity}
-                            onChange={(e) =>
-                              handleQuantityChange(product._id, e.target.value)
-                            }
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-24 px-3 py-2 text-center border-2 border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                          />
+                          <div className="flex items-center space-x-2">
+                            {/* ➖ Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (currentQuantity > 1) {
+                                  handleQuantityChange(
+                                    product._id,
+                                    currentQuantity - 1
+                                  );
+                                }
+                              }}
+                              className="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 active:scale-95 transition"
+                            >
+                              ➖
+                            </button>
+
+                            {/* Input */}
+                            <input
+                              type="number"
+                              min="1"
+                              value={currentQuantity}
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  product._id,
+                                  parseInt(e.target.value) || 1
+                                )
+                              }
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-16 text-center border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+
+                            {/* ➕ Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQuantityChange(
+                                  product._id,
+                                  currentQuantity + 1
+                                );
+                              }}
+                              className="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 active:scale-95 transition"
+                            >
+                              ➕
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -215,91 +252,70 @@ export default function ProductOrderForm({ products: initialProducts }) {
               </div>
             </div>
 
-            {/* Billing Information and Shipping */}
+            {/* Billing Info */}
             <div className="bg-white p-8 rounded-3xl shadow-xl space-y-8">
               <h3 className="text-2xl font-bold text-gray-800">
                 📋 বিলিং তথ্য
               </h3>
               <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-600">
-                    আপনার নাম
-                  </label>
-                  <input
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    required
-                    className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-gray-900 placeholder-gray-400"
-                    placeholder="আপনার পুরো নাম লিখুন"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-600">
-                    ফোন নম্বর
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                    className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-gray-900 placeholder-gray-400"
-                    placeholder="উদাহরণ: 01712345678"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-600">
-                    ঠিকানা
-                  </label>
-                  <textarea
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    required
-                    rows="4"
-                    className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-gray-900 placeholder-gray-400"
-                    placeholder="আপনার সম্পূর্ণ ঠিকানা লিখুন"
-                  ></textarea>
-                </div>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  required
+                  placeholder="আপনার নাম"
+                  className="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-green-500"
+                />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  placeholder="01712345678"
+                  className="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-green-500"
+                />
+                <textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  required
+                  rows="4"
+                  placeholder="ঠিকানা লিখুন"
+                  className="w-full px-5 py-3 border rounded-xl focus:ring-2 focus:ring-green-500"
+                ></textarea>
               </div>
 
-              <div className="border-t pt-8 space-y-6">
+              {/* Shipping */}
+              <div className="border-t pt-8 space-y-4">
                 <h3 className="text-2xl font-bold text-gray-800">
                   🚚 ডেলিভারি চার্জ
                 </h3>
-                <div className="space-y-4">
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="shipping"
-                      value="insideDhaka"
-                      checked={shipping === "insideDhaka"}
-                      onChange={(e) => setShipping(e.target.value)}
-                      className="h-5 w-5 text-green-600 focus:ring-2 focus:ring-green-500"
-                    />
-                    <span className="text-lg text-gray-700">
-                      ঢাকার ভিতরে (৳{shippingCost.insideDhaka})
-                    </span>
-                  </label>
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="shipping"
-                      value="outsideDhaka"
-                      checked={shipping === "outsideDhaka"}
-                      onChange={(e) => setShipping(e.target.value)}
-                      className="h-5 w-5 text-green-600 focus:ring-2 focus:ring-green-500"
-                    />
-                    <span className="text-lg text-gray-700">
-                      ঢাকার বাইরে (৳{shippingCost.outsideDhaka})
-                    </span>
-                  </label>
-                </div>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="shipping"
+                    value="insideDhaka"
+                    checked={shipping === "insideDhaka"}
+                    onChange={(e) => setShipping(e.target.value)}
+                    className="h-5 w-5 text-green-600"
+                  />
+                  <span>ঢাকার ভিতরে (৳{shippingCost.insideDhaka})</span>
+                </label>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="shipping"
+                    value="outsideDhaka"
+                    checked={shipping === "outsideDhaka"}
+                    onChange={(e) => setShipping(e.target.value)}
+                    className="h-5 w-5 text-green-600"
+                  />
+                  <span>ঢাকার বাইরে (৳{shippingCost.outsideDhaka})</span>
+                </label>
               </div>
             </div>
           </div>
 
-          {/* Right Section (Order Summary) */}
-          {/* New wrapper div for the sticky behavior */}
+          {/* Right Section (Summary) */}
           <div className="lg:col-span-1 space-y-8 sticky top-8 self-start">
             <div className="bg-white p-8 rounded-3xl shadow-2xl">
               <h3 className="text-2xl font-bold mb-6 text-gray-800">
@@ -310,10 +326,10 @@ export default function ProductOrderForm({ products: initialProducts }) {
                   selectedProducts.map((product) => (
                     <div
                       key={product._id}
-                      className="flex items-center justify-between py-2 border-b last:border-b-0 border-gray-200"
+                      className="flex items-center justify-between py-2 border-b"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="relative w-14 h-14 rounded-md overflow-hidden flex-shrink-0">
+                        <div className="w-14 h-14 rounded-md overflow-hidden">
                           <img
                             src={product.imageURL}
                             alt={product.name}
@@ -321,10 +337,10 @@ export default function ProductOrderForm({ products: initialProducts }) {
                           />
                         </div>
                         <div>
-                          <p className="font-semibold text-base text-gray-800">
+                          <p className="font-semibold text-base">
                             {product.name}
                           </p>
-                          <p className="text-gray-500 text-sm mt-1">
+                          <p className="text-sm text-gray-500">
                             ৳{product.offerPrice} x {product.quantity}
                           </p>
                         </div>
@@ -335,33 +351,18 @@ export default function ProductOrderForm({ products: initialProducts }) {
                     </div>
                   ))
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-10">
-                    <svg
-                      className="w-16 h-16 text-gray-400 mb-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.182 1.767.707 1.767H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                    <p className="text-gray-500 text-lg">
-                      কোনো পণ্য নির্বাচন করা হয়নি।
-                    </p>
-                  </div>
+                  <p className="text-gray-500 text-lg text-center py-6">
+                    কোনো পণ্য নির্বাচন করা হয়নি।
+                  </p>
                 )}
               </div>
 
               <div className="border-t pt-6 space-y-4">
-                <div className="flex justify-between font-medium text-gray-700">
+                <div className="flex justify-between">
                   <span>সাবটোটাল</span>
                   <span>৳{subtotal}</span>
                 </div>
-                <div className="flex justify-between font-medium text-gray-700">
+                <div className="flex justify-between">
                   <span>ডেলিভারি চার্জ</span>
                   <span>৳{finalShippingCost}</span>
                 </div>
@@ -374,30 +375,13 @@ export default function ProductOrderForm({ products: initialProducts }) {
             <button
               type="submit"
               disabled={loading || selectedProducts.length === 0}
-              className="w-full py-5 text-white bg-green-600 rounded-2xl font-bold text-lg hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
+              className="w-full py-5 text-white bg-green-600 rounded-2xl font-bold text-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "অর্ডার প্রক্রিয়া চলছে..." : `অর্ডার করুন ৳${total}`}
             </button>
           </div>
         </form>
       </div>
-      <footer className="w-full bg-gray-900 text-gray-400 py-6 mt-10">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm sm:text-base">
-            Copyright © 2025
-            <span className="font-semibold text-white"> Tatpolli </span>-
-            Developed by{" "}
-            <a
-              href="https://imran-hossain-portfolio.netlify.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-blue-400 hover:text-blue-500 transition-colors duration-300"
-            >
-              Imran
-            </a>
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }
